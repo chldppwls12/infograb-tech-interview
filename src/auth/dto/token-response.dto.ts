@@ -1,7 +1,7 @@
 import { IsNotEmpty } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class LoginResponseDto {
+export class TokenResponseDto {
   @ApiProperty({
     description: '엑세스 토큰',
   })

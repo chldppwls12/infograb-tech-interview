@@ -40,4 +40,16 @@ export class AuthRepository {
       })
     )?.password;
   }
+
+  async findUserEmailById(id: string): Promise<string | null> {
+    return (
+      await this.prisma.user.findFirst({
+        select: { email: true },
+        where: {
+          id,
+          status: Status.NORMAL,
+        },
+      })
+    )?.email;
+  }
 }

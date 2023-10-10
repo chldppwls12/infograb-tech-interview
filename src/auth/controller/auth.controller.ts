@@ -3,30 +3,49 @@ import { AuthService } from '../service/auth.service';
 import { LoginRequestDto } from '../dto/login-request.dto';
 import { LocalAuthGuard } from '../guard/local-auth.guard';
 import {
+  ApiBearerAuth,
   ApiCreatedResponse,
   ApiOperation,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { LoginResponseDto } from '../dto/login-response.dto';
+import { TokenResponseDto } from '../dto/token-response.dto';
+import { JwtAuthGuard } from '../guard/jwt-auth.guard';
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
-  @Post('login')
   @ApiOperation({ summary: '로그인 API' })
   @ApiCreatedResponse({
     status: 201,
     description: '로그인 성공',
-    type: LoginResponseDto,
+    type: TokenResponseDto,
   })
   @ApiUnauthorizedResponse({
-    status: 403,
+    status: 401,
     description: '유효하지 않은 이메일 or 비밀번호',
   })
+  @Post('login')
   @UseGuards(LocalAuthGuard)
-  async login(@Body() requestDto: LoginRequestDto): Promise<LoginResponseDto> {
+  async login(@Body() requestDto: LoginRequestDto): Promise<TokenResponseDto> {
     return this.authService.login(requestDto);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '토큰 재발급 API' })
+  @ApiCreatedResponse({
+    status: 201,
+    description: '토큰 재발급 성공',
+    type: TokenResponseDto,
+  })
+  @ApiUnauthorizedResponse({
+    status: 401,
+    description: '유효하지 않은 토큰',
+  })
+  @Post('refresh')
+  @UseGuards(JwtAuthGuard)
+  async reissueTokens(): Promise<TokenResponseDto> {
+    return this.authService.reissueTokens();
   }
 }

@@ -35,7 +35,16 @@ export class AuthService {
       throw new UnauthorizedException(ErrMessage.INVALID_EMAIL_OR_PASSWORD);
     }
 
-    return this.signTokens({ email, userId });
+    const tokens = await this.signTokens({ email, userId });
+
+    // redis에 refresh token 집어넣기
+    await this.cacheService.set(
+      `${REFRESH_TOKEN_KEY}:${userId}`,
+      tokens.refreshToken,
+      this.configService.get<number>('REFRESH_TOKEN_EXPIRES_IN'),
+    );
+
+    return tokens;
   }
 
   async validateUser(email: string, password: string) {

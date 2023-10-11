@@ -1,10 +1,18 @@
-import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthService } from '../service/auth.service';
 import { LoginRequestDto } from '../dto/login-request.dto';
 import { LocalAuthGuard } from '../guard/local-auth.guard';
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
+  ApiOkResponse,
   ApiOperation,
   ApiTags,
   ApiUnauthorizedResponse,
@@ -12,6 +20,7 @@ import {
 import { TokenResponseDto } from '../dto/token-response.dto';
 import { JwtAuthGuard } from '../guard/jwt-auth.guard';
 import { CurrentUser } from '../decorator/current-user.decorator';
+import { TokenPayloadDto } from '../dto/token-payload.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -48,5 +57,26 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   async reissueTokens(@CurrentUser() user): Promise<TokenResponseDto> {
     return this.authService.reissueTokens(user);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '로그아웃 API' })
+  @ApiOkResponse({
+    status: 200,
+    description: '로그아웃 성공',
+  })
+  @ApiUnauthorizedResponse({
+    status: 401,
+    description: '유효하지 않은 토큰',
+  })
+  @Post('logout')
+  @HttpCode(200)
+  @UseGuards(JwtAuthGuard)
+  async logout(
+    @Req() req: Request,
+    @CurrentUser() user: TokenPayloadDto,
+  ): Promise<void> {
+    const accessToken = req.headers['authorization'].split(' ')[1];
+    return this.authService.logout(user, accessToken);
   }
 }

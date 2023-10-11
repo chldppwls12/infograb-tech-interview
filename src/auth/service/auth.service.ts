@@ -8,7 +8,7 @@ import { ConfigService } from '@nestjs/config';
 import { TokenResponseDto } from '../dto/token-response.dto';
 import { TokenPayloadDto } from '../dto/token-payload.dto';
 import { CacheService } from '../../cache/service/cache.service';
-import { REFRESH_TOKEN_KEY } from '../../common/constants';
+import { JWT_BLACKLIST_KEY, REFRESH_TOKEN_KEY } from '../../common/constants';
 
 @Injectable()
 export class AuthService {
@@ -82,5 +82,13 @@ export class AuthService {
       userId,
       email: await this.authRepository.findUserEmailById(userId),
     });
+  }
+
+  async logout(user: TokenPayloadDto, accessToken: string): Promise<void> {
+    await this.cacheService.sadd(
+      JWT_BLACKLIST_KEY,
+      accessToken,
+      this.configService.get<number>('ACCESS_TOKEN_EXPIRES_IN'),
+    );
   }
 }

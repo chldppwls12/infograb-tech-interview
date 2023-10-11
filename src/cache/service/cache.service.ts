@@ -13,4 +13,8 @@ export class CacheService {
   async set(key: string, value: string, ttl: number): Promise<void> {
     await this.redis.set(key, value, 'EX', ttl);
   }
+
+  async sadd(key: string, value: string, ttl: number): Promise<void> {
+    await this.redis.sadd(key, value, 'EX', ttl);
+  }
 }

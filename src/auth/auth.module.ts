@@ -8,9 +8,12 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './strategy/jwt.strategy';
+import { CacheModule } from '@nestjs/cache-manager';
+import { CacheService } from '../cache/service/cache.service';
 
 @Module({
   imports: [
+    CacheModule.register(),
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -30,6 +33,7 @@ import { JwtStrategy } from './strategy/jwt.strategy';
     JwtStrategy,
     AuthRepository,
     PrismaService,
+    CacheService,
   ],
 })
 export class AuthModule {}

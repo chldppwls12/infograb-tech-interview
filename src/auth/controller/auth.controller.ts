@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
 import { AuthService } from '../service/auth.service';
 import { LoginRequestDto } from '../dto/login-request.dto';
 import { LocalAuthGuard } from '../guard/local-auth.guard';
@@ -11,6 +11,7 @@ import {
 } from '@nestjs/swagger';
 import { TokenResponseDto } from '../dto/token-response.dto';
 import { JwtAuthGuard } from '../guard/jwt-auth.guard';
+import { CurrentUser } from '../decorator/current-user.decorator';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -45,7 +46,7 @@ export class AuthController {
   })
   @Post('refresh')
   @UseGuards(JwtAuthGuard)
-  async reissueTokens(): Promise<TokenResponseDto> {
-    return this.authService.reissueTokens();
+  async reissueTokens(@CurrentUser() user): Promise<TokenResponseDto> {
+    return this.authService.reissueTokens(user);
   }
 }

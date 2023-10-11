@@ -7,6 +7,8 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { TokenResponseDto } from '../dto/token-response.dto';
 import { TokenPayloadDto } from '../dto/token-payload.dto';
+import { CacheService } from '../../cache/service/cache.service';
+import { REFRESH_TOKEN_KEY } from '../../common/constants';
 
 @Injectable()
 export class AuthService {
@@ -14,12 +16,13 @@ export class AuthService {
     private authRepository: AuthRepository,
     private jwtService: JwtService,
     private configService: ConfigService,
+    private cacheService: CacheService,
   ) {}
 
   async signTokens(payload: TokenPayloadDto): Promise<TokenResponseDto> {
     return {
       accessToken: this.jwtService.sign(payload),
-      refreshToken: this.jwtService.sign({
+      refreshToken: this.jwtService.sign(payload, {
         secret: this.configService.get<string>('JWT_SECRET'),
         expiresIn: this.configService.get<string>('REFRESH_TOKEN_EXPIRES_IN'),
       }),
@@ -53,10 +56,16 @@ export class AuthService {
     return true;
   }
 
-  async reissueTokens(): Promise<TokenResponseDto> {
-    // TODO: redis에서 userId 뽑기
-    const userId = 'test';
+  async reissueTokens(user: TokenPayloadDto): Promise<TokenResponseDto> {
+    const { userId } = user;
+
+    // 유효한 유저인지 확인
     if (!userId) {
+      throw new UnauthorizedException(ErrMessage.INVALID_TOKEN);
+    }
+
+    // 해당 refresh token이 redis에 존재하는지 확인
+    if (!(await this.cacheService.get(`${REFRESH_TOKEN_KEY}:${userId}`))) {
       throw new UnauthorizedException(ErrMessage.INVALID_TOKEN);
     }
 

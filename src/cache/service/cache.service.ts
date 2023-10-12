@@ -17,4 +17,8 @@ export class CacheService {
   async sadd(key: string, value: string, ttl: number): Promise<void> {
     await this.redis.sadd(key, value, 'EX', ttl);
   }
+
+  async sismember(key: string, value: string): Promise<boolean> {
+    return !!(await this.redis.sismember(key, value));
+  }
 }

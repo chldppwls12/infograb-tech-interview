@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { LoginRequestDto } from '../dto/login-request.dto';
 import { AuthRepository } from '../repository/auth.repository';
 import * as bcrypt from 'bcrypt';
@@ -9,6 +13,7 @@ import { TokenResponseDto } from '../dto/token-response.dto';
 import { TokenPayloadDto } from '../dto/token-payload.dto';
 import { CacheService } from '../../cache/service/cache.service';
 import { JWT_BLACKLIST_KEY, REFRESH_TOKEN_KEY } from '../../common/constants';
+import { SignUpRequestDto } from '../dto/signup-request.dto';
 
 @Injectable()
 export class AuthService {
@@ -18,6 +23,15 @@ export class AuthService {
     private configService: ConfigService,
     private cacheService: CacheService,
   ) {}
+
+  async signup(requestDto: SignUpRequestDto): Promise<void> {
+    if (!(await this.authRepository.isValidEmail(requestDto.email))) {
+      throw new BadRequestException(ErrMessage.ALREADY_EXIST_EMAIL);
+    }
+
+    requestDto.password = await bcrypt.hash(requestDto.password, 10);
+    await this.authRepository.createUser(requestDto);
+  }
 
   async signTokens(payload: TokenPayloadDto): Promise<TokenResponseDto> {
     return {

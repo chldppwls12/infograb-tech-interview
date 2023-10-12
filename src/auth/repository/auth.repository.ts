@@ -1,10 +1,19 @@
 import { PrismaService } from '../../prisma/prisma.service';
 import { Status } from '@prisma/client';
 import { Injectable } from '@nestjs/common';
+import { SignUpRequestDto } from '../dto/signup-request.dto';
 
 @Injectable()
 export class AuthRepository {
   constructor(private prisma: PrismaService) {}
+
+  async createUser(data: SignUpRequestDto): Promise<void> {
+    await this.prisma.user.create({
+      data: {
+        ...data,
+      },
+    });
+  }
 
   async findUserPk(email: string): Promise<string | null> {
     return (

@@ -10,6 +10,7 @@ import { AuthService } from '../service/auth.service';
 import { LoginRequestDto } from '../dto/login-request.dto';
 import { LocalAuthGuard } from '../guard/local-auth.guard';
 import {
+  ApiBadRequestResponse,
   ApiBearerAuth,
   ApiCreatedResponse,
   ApiOkResponse,
@@ -21,11 +22,28 @@ import { TokenResponseDto } from '../dto/token-response.dto';
 import { JwtAuthGuard } from '../guard/jwt-auth.guard';
 import { CurrentUser } from '../decorator/current-user.decorator';
 import { TokenPayloadDto } from '../dto/token-payload.dto';
+import { SignUpRequestDto } from '../dto/signup-request.dto';
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
+
+  @ApiOperation({ summary: '회원가입 API' })
+  @ApiCreatedResponse({
+    status: 201,
+    description: '회원가입 성공',
+    type: TokenResponseDto,
+  })
+  @ApiBadRequestResponse({
+    status: 400,
+    description: '이미 존재하는 이메일',
+  })
+  @Post('signup')
+  async signup(@Body() requestDto: SignUpRequestDto): Promise<void> {
+    return this.authService.signup(requestDto);
+  }
+
   @ApiOperation({ summary: '로그인 API' })
   @ApiCreatedResponse({
     status: 201,
